@@ -2,7 +2,6 @@
 #define MAILBOX
 
 #include <stdlib.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -19,16 +18,9 @@ typedef struct __MAIL{
 	char sstr[SIZE_OF_SHORT_STRING];
 	char lstr[SIZE_OF_LONG_STRING];
 }mail_t;
-typedef struct MAILBOX_T{
-	int fd;
-	int id;
-	int status;
-	char usr[SIZE_OF_SHORT_STRING];
-	mail_t mail_buffer[32];
-}mailbox_t;
-//typedef void *mailbox_t;
+typedef void *mailbox_t;
 //declare API finctions
-mailbox_t* mailbox_open(int id);
+mailbox_t mailbox_open(int id);
 int mailbox_unlink(int id);
 int mailbox_send(mailbox_t box, mail_t *mail);
 int mailbox_recv(mailbox_t box, mail_t *mail);

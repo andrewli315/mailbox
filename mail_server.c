@@ -9,6 +9,9 @@
 
 int main(void)
 {
+	int id = 0;
+	char str[] = "server";
+	
 	
 	
 }

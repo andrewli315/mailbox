@@ -1,28 +1,49 @@
-#include <stdio.h>
 #include "mailbox.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-#include <sys/shm.h>
-#include <sys/types.h>
-#include <error.h>
+#include <stdarg.h>
+#include <string.h>
+
+#define NONECOLOR "\033[m"
+#define RED "\033[0;32;31m"
+#define LIGHT_RED "\033[1;31m"
+#define GREEN "\033[0;32;32m"
+#define LIGHT_GREEN "\033[1;32m"
+#define BLUE "\033[0;32;34m"
+#define LIGHT_BLUE "\033[1;34m"
+#define DARY_GRAY "\033[1;30m"
+#define CYAN "\033[0;36m"
+#define LIGHT_CYAN "\033[1;36m"
+#define PURPLE "\033[0;35m"
+#define LIGHT_PURPLE "\033[1;35m"
+#define BROWN "\033[0;33m"
+#define YELLOW "\033[1;33m"
+#define LIGHT_GRAY "\033[0;37m"
+#define WHITE "\033[1;37m"
+
 int main(void)
 {
-	mailbox_t *client;
 	int id,i;
 	char usr[32];
-	printf("input your user name : ");
+	int length;
+	mail_t mail;
+	printf(CYAN "input your user name : " WHITE);
 	scanf("%s",usr);
-	printf("input your id : ");
+	printf(CYAN "input your id : " WHITE);
 	scanf("%d",&id);
-
-	client = mailbox_open(id);
 	//if(client != NULL)
-	
-	printf("fd = %d\n",client->fd);
-	printf("id = %d\n",client->id);
+	int fd = mailbox_open(id);
+	memcpy(mail.sstr,usr,sizeof(usr));
+	while(strcmp("leave",mail.lstr)!=0)
+	{
+		fgets(mail.lstr,SIZE_OF_LONG_STRING,stdin);
+		length = strlen(mail.lstr);
+		mail.lstr[length-1] = '\0';
+		printf(BROWN "msg : %s\n",mail.lstr);
+		printf("user : %s\n",mail.sstr);
+		printf(WHITE);
+		write(fd,&mail,sizeof(mail_t));
+		printf("fd = %d\n",fd);
+	}
+	mailbox_unlink(id);
 	return 0;
 
 }
