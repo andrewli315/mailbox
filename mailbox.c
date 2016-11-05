@@ -32,20 +32,28 @@ int mailbox_unlink(int id)
 }
 int mailbox_send(mailbox_t box, mail_t *mail)
 {
-	
-
+	if(mailbox_check_full(box) == 0)
+		write(box.fd,&mail,sizeof(mail_t));
+	else
+		return -1;
+	return 0;
 }
 int mailbox_recv(mailbox_t box, mail_t *mail)
 {
+	if(mailbox_check_recv(box) == 0)
+		read(box.fd,&mail,sizeof(mail_t));
+	else
+		return -1;
+	return 0;
 
 }
 int mailbox_check_empty(mailbox_t box)
 {
-
+	return 0;
 }
 int mailbox_check_full(mailbox_t box)
 {
-
+	return 0;
 }
 int mailbox_close(mailbox_t box)
 {

@@ -18,6 +18,11 @@ typedef struct __MAIL{
 	char sstr[SIZE_OF_SHORT_STRING];
 	char lstr[SIZE_OF_LONG_STRING];
 }mail_t;
+typedef struct __MAILBOX_T
+{
+	int fd;
+	int id;	
+}mailbox_t;
 typedef void *mailbox_t;
 //declare API finctions
 mailbox_t mailbox_open(int id);

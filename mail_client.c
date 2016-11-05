@@ -30,7 +30,8 @@ int main(void)
 	printf(CYAN "input your id : " WHITE);
 	scanf("%d",&id);
 	//if(client != NULL)
-	int fd = mailbox_open(id);
+	int fd = (int)mailbox_open(id);
+	int server_fd = (int)mailbox_open(0);
 	memcpy(mail.sstr,usr,sizeof(usr));
 	while(strcmp("leave",mail.lstr)!=0)
 	{
@@ -40,7 +41,7 @@ int main(void)
 		printf(BROWN "msg : %s\n",mail.lstr);
 		printf("user : %s\n",mail.sstr);
 		printf(WHITE);
-		write(fd,&mail,sizeof(mail_t));
+		
 		printf("fd = %d\n",fd);
 	}
 	mailbox_unlink(id);
