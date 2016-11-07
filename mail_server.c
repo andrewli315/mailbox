@@ -29,11 +29,12 @@ int main(void)
 	char str[] = "server";
 	int fd;
 	mail_t mail;
-	fd = (int)mailbox_open(id);
+	mailbox* server;
+	server = (mailbox*)mailbox_open(id);
 	printf( RED "Server is on\n" WHITE);
 	while(1)
 	{
-		if(read(fd,&mail,sizeof(mail)) != -1)
+		if(read(server->fd,&mail,sizeof(mail)) != -1)
 		{
 			printf(BROWN "receive mail from : %s\n",mail.sstr);
 			printf("mail content : %s\n", mail.lstr);

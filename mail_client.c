@@ -24,14 +24,15 @@ int main(void)
 	int id,i;
 	char usr[32];
 	int length;
+	mailbox* server_box;
 	mail_t mail;
 	printf(CYAN "input your user name : " WHITE);
 	scanf("%s",usr);
 	printf(CYAN "input your id : " WHITE);
 	scanf("%d",&id);
-	//if(client != NULL)
-	int fd = (int)mailbox_open(id);
-	int server_fd = (int)mailbox_open(0);
+	
+	mailbox* box = (mailbox*)mailbox_open(id);
+	server_box = (mailbox*)mailbox_open(0);
 	memcpy(mail.sstr,usr,sizeof(usr));
 	while(strcmp("leave",mail.lstr)!=0)
 	{
@@ -42,7 +43,8 @@ int main(void)
 		printf("user : %s\n",mail.sstr);
 		printf(WHITE);
 		
-		printf("fd = %d\n",fd);
+		printf("fd = %d\n",box->fd);
+		printf("fd = %d\n",server_box->fd);
 	}
 	mailbox_unlink(id);
 	return 0;

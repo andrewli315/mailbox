@@ -11,15 +11,16 @@ mailbox_t mailbox_open(int id)
 
 	int fd;
 	char name[32];	
-
+	mailbox* box = (mailbox*)malloc(sizeof(mailbox));
 	sprintf(name,"%s%d",SHM_NAME,id);
-	fd = shm_open(name, O_RDWR | O_CREAT, 0777);
+	box->id = id;
+	box->fd = shm_open(name, O_RDWR | O_CREAT, 0777);
 	if(fd == -1)
 	{
 		fprintf(stderr, "Open shared memory failed\n");
 		return NULL;
 	}
-	return (void*)fd;
+	return (mailbox*)box;
 }
 int mailbox_unlink(int id)
 {
@@ -33,15 +34,15 @@ int mailbox_unlink(int id)
 int mailbox_send(mailbox_t box, mail_t *mail)
 {
 	if(mailbox_check_full(box) == 0)
-		write(box.fd,&mail,sizeof(mail_t));
+		write(((mailbox*)box)->fd,&mail,sizeof(mail_t));
 	else
 		return -1;
 	return 0;
 }
 int mailbox_recv(mailbox_t box, mail_t *mail)
 {
-	if(mailbox_check_recv(box) == 0)
-		read(box.fd,&mail,sizeof(mail_t));
+	if(mailbox_check_empty(box) == 0)
+		read(((mailbox*)box)->fd,&mail,sizeof(mail_t));
 	else
 		return -1;
 	return 0;
@@ -49,6 +50,11 @@ int mailbox_recv(mailbox_t box, mail_t *mail)
 }
 int mailbox_check_empty(mailbox_t box)
 {
+	off_t ptr_cur = lseek(((mailbox*)box)->fd, 0,SEEK_CUR);
+	off_t ptr_set = lseek(((mailbox*)box)->fd, 0,SEEK_SET);
+	off_t ptr_end = lseek(((mailbox*)box)->fd, 0,SEEK_END);
+	
+	lseek(((mailbox*)box)->fd,ptr_cur,SEEK_SET);
 	return 0;
 }
 int mailbox_check_full(mailbox_t box)

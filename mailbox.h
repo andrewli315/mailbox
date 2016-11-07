@@ -22,7 +22,8 @@ typedef struct __MAILBOX_T
 {
 	int fd;
 	int id;	
-}mailbox_t;
+	
+}mailbox;
 typedef void *mailbox_t;
 //declare API finctions
 mailbox_t mailbox_open(int id);
