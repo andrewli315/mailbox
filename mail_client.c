@@ -22,10 +22,12 @@
 int main(void)
 {
 	int id,i;
+	int m =0;
+	int n=0;
 	char usr[32];
 	int length;
 	mailbox* server_box;
-	mail_t mail;
+	mail_t mail,get;
 	printf(CYAN "input your user name : " WHITE);
 	scanf("%s",usr);
 	printf(CYAN "input your id : " WHITE);
@@ -34,17 +36,38 @@ int main(void)
 	mailbox* box = (mailbox*)mailbox_open(id);
 	server_box = (mailbox*)mailbox_open(0);
 	memcpy(mail.sstr,usr,sizeof(usr));
+
+	fcntl(0,F_SETFL,fcntl(0,F_GETFL)|O_NONBLOCK);//STDIN
+	fcntl(1,F_SETFL,fcntl(1,F_GETFL)|O_NONBLOCK);//STDOUT
+
 	while(strcmp("leave",mail.lstr)!=0)
 	{
-		fgets(mail.lstr,SIZE_OF_LONG_STRING,stdin);
+		n = read(0,mail.lstr,SIZE_OF_LONG_STRING);
 		length = strlen(mail.lstr);
 		mail.lstr[length-1] = '\0';
-		printf(BROWN "msg : %s\n",mail.lstr);
-		printf("user : %s\n",mail.sstr);
-		printf(WHITE);
 		
-		printf("fd = %d\n",box->fd);
-		printf("fd = %d\n",server_box->fd);
+		if(n > 0)
+		{
+			write(server_box->fd,&mail,sizeof(mail_t));
+		}
+		else if(n < 0 && m>0)
+		{
+			m = read(server_box->fd,&get,sizeof(mail_t));
+			printf(BROWN);
+			printf("GET mail : %s\n",get.lstr);
+			printf(WHITE);
+			
+		}
+		/*else if (m<0 || n<0 )
+		{
+			printf(RED "Error\n" WHITE);
+			break;
+		}*/
+		if(mail.lstr == "leave")
+		{
+			break;
+		}
+		sleep(1);
 	}
 	mailbox_unlink(id);
 	return 0;

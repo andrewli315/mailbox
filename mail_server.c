@@ -34,7 +34,7 @@ int main(void)
 	printf( RED "Server is on\n" WHITE);
 	while(1)
 	{
-		if(read(server->fd,&mail,sizeof(mail)) != -1)
+		if(read(server->fd,&mail,sizeof(mail)) >0)
 		{
 			printf(BROWN "receive mail from : %s\n",mail.sstr);
 			printf("mail content : %s\n", mail.lstr);
