@@ -18,7 +18,7 @@
 #define LEAVE 3
 
 typedef struct __MAIL{
-	int form;	// the id of client
+	int from;	// the id of client
 	int type;	// the type client want to let server know
 	char sstr[SIZE_OF_SHORT_STRING];	// name of client
 	char lstr[SIZE_OF_LONG_STRING];		// content

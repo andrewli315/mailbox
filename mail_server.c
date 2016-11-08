@@ -26,27 +26,47 @@
 int main(void)
 {
 	int id = 0;
+	int j;
 	int i=0;
+	int n;
+	int from;
 	char str[] = "server";
-	int fd;
-	mail_t mail;
+	char esc[10];
+	mail_t *mail;
+	mail = (mail_t*)malloc(sizeof(mail_t));
+
 	mailbox* server;
 	mailbox *client[100];
 	server = (mailbox*)mailbox_open(id);
+
+	fcntl(0,F_SETFL,fcntl(0,F_GETFL)|O_NONBLOCK);//STDIN
+	fcntl(1,F_SETFL,fcntl(1,F_GETFL)|O_NONBLOCK);//STDOUT
 	
 	printf( RED "Server is on\n" WHITE);
-	while(1)
+	while(strcmp("leave",esc) !=0)
 	{
-		if(read(server->fd,&mail,sizeof(mail)) >0)
+		n = read(0,esc,sizeof(esc));
+		if(mailbox_recv(server, mail) > 0 )
 		{
-			if(strcmp("JOIN",mail.lstr) == 0)
+			if(mail->type == 0)
 			{
-				client[i] = (mailbox*)mailbox_open(mail.form);
-				strcpy(mail.sstr,client[i]->name);
+				client[i] = (mailbox*)mailbox_open(mail->from);
+				strcpy(mail->sstr,client[i]->name);
+				mailbox_send(client[i]->fd, mail);
 				i++;
 			}
-			printf(BROWN "receive mail from : %s\n",mail.sstr);
-			printf("mail content : %s\n", mail.lstr);
+			else if(mail->type == 1)
+			{
+				from = mail->from;
+				for(j=0;j<i;j++)
+				{
+					mail->from = 0;
+					strcpy(mail->sstr,client[from]->name);
+					mailbox_send(client[i]->fd, mail);
+				}
+			}
+			printf(BROWN "receive mail from : %s\n",mail->sstr);
+			printf("mail content : %s\n", mail->lstr);
 		}
 		else
 			continue;

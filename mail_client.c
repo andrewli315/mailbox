@@ -26,42 +26,65 @@ int main(void)
 	int n=0;
 	char usr[32];
 	int length;
+	int type;
 	mailbox* server_box;
-	mail_t mail,get;
+	mail_t *mail,*get;
+
+	mail = (mail_t*)malloc(sizeof(mail_t));
+	get = (mail_t*)malloc(sizeof(mail_t));
+
+	//set up client info
 	printf(CYAN "input your user name : " WHITE);
 	scanf("%s",usr);
 	printf(CYAN "input your id : " WHITE);
 	scanf("%d",&id);
 	
+
 	mailbox* box = (mailbox*)mailbox_open(id);
 	server_box = (mailbox*)mailbox_open(0);
-	memcpy(mail.sstr,usr,sizeof(usr));
+	memcpy(mail->sstr,usr,sizeof(usr));
 
 	fcntl(0,F_SETFL,fcntl(0,F_GETFL)|O_NONBLOCK);//STDIN
 	fcntl(1,F_SETFL,fcntl(1,F_GETFL)|O_NONBLOCK);//STDOUT
-
-	while(strcmp("leave",mail.lstr)!=0)
+	printf("choose 1)BROADCAST or 2)LEAVE and then input the content after a space \n");
+	printf(GREEN "for example : 1 hello world\n");
+	printf(WHITE);
+	while(type != 2)
 	{
+		
 		//non blocking input 
-		n = read(0,mail.lstr,SIZE_OF_LONG_STRING);
+		//using read to implement the nonblock io
+		//cut the string 
+		//judge the type and 
+		scanf("%d",&type);
 		//non blocking receive from server
-		m = mailbox_recv(server_box, &get);
-		
-		length = strlen(mail.lstr);
-		mail.lstr[length-1] = '\0';
-		
-		if(n > 0)
+		m = mailbox_recv(server_box, get);
+		if(type == 1)
 		{
-			mailbox_send(box,&mail);
-			//write(server_box->fd,&mail,sizeof(mail_t));
-		}
-		else if(n < 0 && m>0)
-		{
-			printf(BROWN);
-			printf("GET mail : %s\n",get.lstr);
-			printf(WHITE);
+			
+			read(0,mail->lstr,SIZE_OF_LONG_STRING);
+			length = strlen(mail->lstr);
+			mail->lstr[length-1] = '\0';
+			
+			if(n > 0)
+			{
+				printf("%s\n", type);
+				type = -1;
+				memset(0,type,sizeof(type));
+				mailbox_send(box,mail);
+				
+				//write(server_box->fd,&mail,sizeof(mail_t));
+			}
+			printf("choose 1)BROADCAST or 2)LEAVE\n");
 			
 		}
+		/*else if(n < 0 && m>0)
+		{
+			printf(BROWN);
+			printf("GET mail : %s\n",get->lstr);
+			printf(WHITE);
+			
+		}*/
 		/*else if (m<0 || n<0 )
 		{
 			printf(RED "Error\n" WHITE);
