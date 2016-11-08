@@ -12,16 +12,22 @@
 
 #define SIZE_OF_SHORT_STRING 64
 #define SIZE_OF_LONG_STRING 128
+#define JOIN 0
+#define BROADCAST 1
+#define PRIVATE 2
+#define LEAVE 3
+
 typedef struct __MAIL{
-	int form;
-	int type;
-	char sstr[SIZE_OF_SHORT_STRING];
-	char lstr[SIZE_OF_LONG_STRING];
+	int form;	// the id of client
+	int type;	// the type client want to let server know
+	char sstr[SIZE_OF_SHORT_STRING];	// name of client
+	char lstr[SIZE_OF_LONG_STRING];		// content
 }mail_t;
 typedef struct __MAILBOX_T
 {
+	int id;
 	int fd;
-	int id;	
+	char* name;
 	
 }mailbox;
 typedef void *mailbox_t;

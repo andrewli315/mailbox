@@ -42,17 +42,21 @@ int main(void)
 
 	while(strcmp("leave",mail.lstr)!=0)
 	{
+		//non blocking input 
 		n = read(0,mail.lstr,SIZE_OF_LONG_STRING);
+		//non blocking receive from server
+		m = mailbox_recv(server_box, &get);
+		
 		length = strlen(mail.lstr);
 		mail.lstr[length-1] = '\0';
 		
 		if(n > 0)
 		{
-			write(server_box->fd,&mail,sizeof(mail_t));
+			mailbox_send(box,&mail);
+			//write(server_box->fd,&mail,sizeof(mail_t));
 		}
 		else if(n < 0 && m>0)
 		{
-			m = read(server_box->fd,&get,sizeof(mail_t));
 			printf(BROWN);
 			printf("GET mail : %s\n",get.lstr);
 			printf(WHITE);
@@ -63,10 +67,6 @@ int main(void)
 			printf(RED "Error\n" WHITE);
 			break;
 		}*/
-		if(mail.lstr == "leave")
-		{
-			break;
-		}
 		sleep(1);
 	}
 	mailbox_unlink(id);

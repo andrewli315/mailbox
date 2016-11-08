@@ -33,6 +33,7 @@ int mailbox_unlink(int id)
 }
 int mailbox_send(mailbox_t box, mail_t *mail)
 {
+	int n=0;
 	if(mailbox_check_full(box) == 0)
 		write(((mailbox*)box)->fd,&mail,sizeof(mail_t));
 	else
@@ -41,11 +42,12 @@ int mailbox_send(mailbox_t box, mail_t *mail)
 }
 int mailbox_recv(mailbox_t box, mail_t *mail)
 {
+	int n=0;
 	if(mailbox_check_empty(box) == 0)
-		read(((mailbox*)box)->fd,&mail,sizeof(mail_t));
+		n = read(((mailbox*)box)->fd,&mail,sizeof(mail_t));
 	else
 		return -1;
-	return 0;
+	return n;
 
 }
 int mailbox_check_empty(mailbox_t box)

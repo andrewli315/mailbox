@@ -26,16 +26,25 @@
 int main(void)
 {
 	int id = 0;
+	int i=0;
 	char str[] = "server";
 	int fd;
 	mail_t mail;
 	mailbox* server;
+	mailbox *client[100];
 	server = (mailbox*)mailbox_open(id);
+	
 	printf( RED "Server is on\n" WHITE);
 	while(1)
 	{
 		if(read(server->fd,&mail,sizeof(mail)) >0)
 		{
+			if(strcmp("JOIN",mail.lstr) == 0)
+			{
+				client[i] = (mailbox*)mailbox_open(mail.form);
+				strcpy(mail.sstr,client[i]->name);
+				i++;
+			}
 			printf(BROWN "receive mail from : %s\n",mail.sstr);
 			printf("mail content : %s\n", mail.lstr);
 		}
