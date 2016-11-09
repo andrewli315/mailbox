@@ -36,37 +36,55 @@ int main(void)
 	mail = (mail_t*)malloc(sizeof(mail_t));
 
 	mailbox* server;
-	mailbox *client[100];
+	mailbox *client[10];
 	server = (mailbox*)mailbox_open(id);
-
+/*
 	fcntl(0,F_SETFL,fcntl(0,F_GETFL)|O_NONBLOCK);//STDIN
 	fcntl(1,F_SETFL,fcntl(1,F_GETFL)|O_NONBLOCK);//STDOUT
+*/
 	
 	printf( RED "Server is on\n" WHITE);
 	while(strcmp("leave",esc) !=0)
 	{
-		n = read(0,esc,sizeof(esc));
-		if(mailbox_recv(server, mail) > 0 )
+//		printf(BROWN);
+		memset(mail,0,sizeof(mail_t));
+		off_t ptr_cur = lseek(server->fd, 0,SEEK_CUR);
+		off_t ptr_end = lseek(server->fd, 0,SEEK_END);
+		
+	
+	    lseek(server->fd,ptr_cur,SEEK_SET);
+
+		
+		if(ptr_cur < ptr_end)
 		{
+		    mailbox_recv(server,mail);
 			if(mail->type == 0)
 			{
 				client[i] = (mailbox*)mailbox_open(mail->from);
-				strcpy(mail->sstr,client[i]->name);
-				mailbox_send(client[i]->fd, mail);
+				strcpy(client[i]->name,mail->sstr);
+				mailbox_send(client[i], mail);
+				printf("client_id is    : %d\n",client[i]->id);
+				printf("id is           : %d\n",mail->from);
+				printf("type is         : %d\n", mail->type);
+				printf("receive mail    : %s\n",mail->sstr);
+				printf("mail content    : %s\n", mail->lstr);
 				i++;
 			}
 			else if(mail->type == 1)
 			{
+				printf("id is           : %d\n",mail->from);
+				printf("type is         : %d\n", mail->type);
+				printf("receive mail    : %s\n",mail->sstr);
+				printf("mail content    : %s\n", mail->lstr);
+			
 				from = mail->from;
 				for(j=0;j<i;j++)
 				{
 					mail->from = 0;
-					strcpy(mail->sstr,client[from]->name);
-					mailbox_send(client[i]->fd, mail);
+					//strcpy(mail->sstr,client[from]->name);
+					//mailbox_send(client[i]->fd, mail);
 				}
 			}
-			printf(BROWN "receive mail from : %s\n",mail->sstr);
-			printf("mail content : %s\n", mail->lstr);
 		}
 		else
 			continue;

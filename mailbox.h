@@ -27,7 +27,7 @@ typedef struct __MAILBOX_T
 {
 	int id;
 	int fd;
-	char* name;
+	char name[SIZE_OF_SHORT_STRING];
 	
 }mailbox;
 typedef void *mailbox_t;

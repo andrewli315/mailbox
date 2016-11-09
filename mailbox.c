@@ -3,8 +3,7 @@
 #include <error.h>
 
 #define SHM_NAME "/__mailbox_"
-#define CREATE 1
-#define LEAVE 0
+
 
 mailbox_t mailbox_open(int id)
 {
@@ -35,7 +34,7 @@ int mailbox_send(mailbox_t box, mail_t *mail)
 {
 	int n=0;
 	if(mailbox_check_full(box) == 0)
-		write(((mailbox*)box)->fd,&mail,sizeof(mail_t));
+		write(((mailbox*)box)->fd,mail,sizeof(mail_t));
 	else
 		return -1;
 	return 0;
@@ -44,7 +43,7 @@ int mailbox_recv(mailbox_t box, mail_t *mail)
 {
 	int n=0;
 	if(mailbox_check_empty(box) == 0)
-		n = read(((mailbox*)box)->fd,&mail,sizeof(mail_t));
+		n = read(((mailbox*)box)->fd,mail,sizeof(mail_t));
 	else
 		return -1;
 	return n;
@@ -57,6 +56,9 @@ int mailbox_check_empty(mailbox_t box)
 	off_t ptr_end = lseek(((mailbox*)box)->fd, 0,SEEK_END);
 	
 	lseek(((mailbox*)box)->fd,ptr_cur,SEEK_SET);
+	if(ptr_end == ptr_set)
+		return 1;
+		else
 	return 0;
 }
 int mailbox_check_full(mailbox_t box)
@@ -65,7 +67,7 @@ int mailbox_check_full(mailbox_t box)
 }
 int mailbox_close(mailbox_t box)
 {
-	if(close(box) == -1)
+	if(close(((mailbox*)box)->fd) == -1)
 		return -1;
 	return 0;
 }
