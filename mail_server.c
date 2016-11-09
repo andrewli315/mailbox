@@ -35,7 +35,7 @@ int main(void)
 	mail_t *mail;
 	mail = (mail_t*)malloc(sizeof(mail_t));
 
-	mailbox* server;
+	static mailbox* server;
 	mailbox *client[10];
 	server = (mailbox*)mailbox_open(id);
 /*
@@ -60,14 +60,13 @@ int main(void)
 		    mailbox_recv(server,mail);
 			if(mail->type == 0)
 			{
+				printf("from id %d\n",mail->from );
 				client[i] = (mailbox*)mailbox_open(mail->from);
 				strcpy(client[i]->name,mail->sstr);
 				mailbox_send(client[i], mail);
 				printf("client_id is    : %d\n",client[i]->id);
-				printf("id is           : %d\n",mail->from);
-				printf("type is         : %d\n", mail->type);
-				printf("receive mail    : %s\n",mail->sstr);
-				printf("mail content    : %s\n", mail->lstr);
+				printf("client_fd is    : %d\n",client[i]->fd);
+				memset(mail,0,sizeof(mail_t));
 				i++;
 			}
 			else if(mail->type == 1)
@@ -78,11 +77,21 @@ int main(void)
 				printf("mail content    : %s\n", mail->lstr);
 			
 				from = mail->from;
-				for(j=0;j<i;j++)
+				//get the info of whom send msg
+				for(j =0;j<i;j++)
 				{
-					mail->from = 0;
-					//strcpy(mail->sstr,client[from]->name);
-					//mailbox_send(client[i]->fd, mail);
+					if(from == client[j]->id)
+						from = j;
+					else
+						continue;
+				}
+				strcpy(mail->sstr,client[from]->name);
+				mail->from = 0;
+				//broadcast the msg
+				for(j=0;j<i;j++)
+				{			
+					printf("name = %s\n",client[j]->name );
+					mailbox_send(client[j], mail);
 				}
 			}
 		}

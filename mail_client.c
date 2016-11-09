@@ -60,6 +60,10 @@ int main(void)
 	
 	fcntl(0,F_SETFL,fcntl(0,F_GETFL)|O_NONBLOCK);//STDIN
 	fcntl(1,F_SETFL,fcntl(1,F_GETFL)|O_NONBLOCK);//STDOUT
+
+	fcntl(box->fd,F_SETFL,fcntl(0,F_GETFL)|O_NONBLOCK);//STDIN
+	fcntl(server_box->fd,F_SETFL,fcntl(1,F_GETFL)|O_NONBLOCK);//STDOUT
+
 	
 	printf("choose 1)BROADCAST or 2)LEAVE and then input the content after a space \n");
 	printf(GREEN "for example : 1 hello world\n");
@@ -75,7 +79,7 @@ int main(void)
 		length = strlen(buf);
 		buf[length-1] = '\0';
 		//non blocking receive from server
-		m = mailbox_recv(server_box, get);		
+		m = mailbox_recv(box, get);		
 
 		if(n > 0)
 		{
@@ -90,19 +94,24 @@ int main(void)
 				printf("content  : %s\n",mail->lstr);
 				printf(WHITE);
 				mailbox_send(server_box,mail);
-				printf("choose 1)BROADCAST or 2)LEAVE\n");	
+				printf("choose 1)BROADCAST or 2)LEAVE\n");
+				n = -1;
 			}
 			else if(type == 2)
+			{
+				mail->from = id;
+				mail->type = 3;
+				mailbox_send(server_box,mail);
 				break;
+			}
 		}
 			
-		else if(n < 0 && m>0)
+		if( m > 0 )
 		{
 			printf(BROWN);
 			printf("GET mail : %s\n",get->lstr);
 			printf(WHITE);
-			printf("choose 1)BROADCAST or 2)LEAVE\n");	
-			
+			printf("choose 1)BROADCAST or 2)LEAVE\n");		
 		}
 		
 		sleep(1);
