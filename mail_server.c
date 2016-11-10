@@ -22,21 +22,30 @@
 #define LIGHT_GRAY "\033[0;37m"
 #define WHITE "\033[1;37m"
 
+mailbox *client[10];
+mailbox *chatroom[3][10];
+int client_count=0;
+int chatroom_count =0;
 
+int searchClient(int id);
+unsigned int check(mail_t *mail);
+int searchChatroom(int room,int id);
 int main(void)
 {
 	int id = 0;
 	int j;
-	int i=0;
+	
 	int n;
-	int from;
+	int from,from_for_check;
+	int pm_id,chat_num;
 	char str[] = "server";
 	char esc[10];
+	char ID[3];
 	mail_t *mail;
 	mail = (mail_t*)malloc(sizeof(mail_t));
 
 	mailbox* server;
-	mailbox *client[10];
+	
 	//init mailbox
 
 
@@ -61,16 +70,22 @@ int main(void)
 		if(ptr_cur < ptr_end)
 		{
 		    mailbox_recv(server,mail);
+	   
 			if(mail->type == 0)
 			{
+				int t;
 				printf("JOIN from id    : %d\n",mail->from );
-				client[i] = (mailbox*)mailbox_open(mail->from);
-				strcpy(client[i]->name,mail->sstr);
-				mailbox_send(client[i], mail);
+				client[client_count] = (mailbox*)mailbox_open(mail->from);
+				strcpy(client[client_count]->name,mail->sstr);
+				for(t =0;t<64;t++)
+				{
+					client[client_count]->checksum ^= mail->sstr[t];
+				}
+				mailbox_send(client[client_count], mail);
 				//printf("client_id is    : %d\n",client[i]->id);
 				//printf("client_fd is    : %d\n",client[i]->fd);
 				memset(mail,0,sizeof(mail_t));
-				i++;
+				client_count++;
 
 			}
 			else if(mail->type == 1)
@@ -83,42 +98,34 @@ int main(void)
 				printf(WHITE);
 				from = mail->from;
 				//get the info of whom send msg
-				for(j =0;j<i;j++)
+				from = searchClient(from);
+				if(check(mail) == client[from]->checksum)
 				{
-					if(from == client[j]->id)
-						from = j;
-					else
-						continue;
+					strcpy(mail->sstr,client[from]->name);
+					mail->from = 0;
+					//broadcast the msg
+					for(j=0;j<client_count;j++)
+					{			
+						//printf("name = %s\n",client[j]->name );
+						mailbox_send(client[j], mail);
+					}
 				}
-				strcpy(mail->sstr,client[from]->name);
-				mail->from = 0;
-				//broadcast the msg
-				for(j=0;j<i;j++)
-				{			
-					//printf("name = %s\n",client[j]->name );
-					mailbox_send(client[j], mail);
+				else
+				{
+					ptr_end -= sizeof(mail_t);
 				}
 				memset(mail->lstr,0,SIZE_OF_LONG_STRING);
 			}
 			else if(mail->type == 2)
 			{
 				from = mail->from;
-				for(j =0;j<i;j++)
-				{
-					if(from == client[j]->id)
-					{
-						from = j;
-						break;
-					}
-					else
-						continue;
-				}
+				from = searchClient(from);
 				strcpy(mail->sstr,client[from]->name);
 				strcpy(mail->lstr,"leave");
 				mail->from = 0;
-				printf("%s leave\n",client[from]->name );
+				//printf("%s leave\n",client[from]->name );
 				//broadcast the msg
-				for(j=0;j<i;j++)
+				for(j=0;j<client_count;j++)
 				{			
 					if(j != from)
 					{
@@ -126,8 +133,8 @@ int main(void)
 						mailbox_send(client[j], mail);
 					}
 				}
-				free(client[from]);
-				for(j=0;j<i-1;j++)
+				//free(client[from]);
+				for(j=0;j<client_count-1;j++)
 				{
 					if(j < from)
 						continue;
@@ -138,38 +145,191 @@ int main(void)
 					}
 				}
 				memset(mail->lstr,0,SIZE_OF_LONG_STRING);
-				i--;
+				client_count--;
 			}
 			else if(mail->type == 3)
 			{
 				memset(mail->lstr,'\0',SIZE_OF_LONG_STRING);
-				printf("type  =  %d\n",mail->type);
-				for(j=0;j<i;j++)
-				{			
-					//printf("name = %s\n",client[j]->name );
-					strcat(mail->lstr,client[j]->name);
-					strcat(mail->lstr,",");
-				}
 				from = mail->from;
-				for(j =0;j<i;j++)
+				for(j=0;j<client_count;j++)
 				{
-					if(from == client[j]->id)
+					strcat(mail->lstr,"\nid = ");
+					sprintf(ID,"%d",client[j]->id);
+					strcat(mail->lstr,ID);
+					strcat(mail->lstr," name = ");
+					strcat(mail->lstr,client[j]->name);
+					strcat(mail->lstr,"\n");
+				}
+				from = searchClient(from);
+				if(from !=- 1)
+					mailbox_send(client[from],mail);
+				memset(mail->lstr,0,SIZE_OF_LONG_STRING);
+			}
+			else if(mail->type /10 == 4)
+			{
+				pm_id = mail->type %10;
+				mail->type /= 10;
+				pm_id = searchClient(pm_id);
+				if(pm_id != -1)
+				{
+					mail->from = 0;
+					mailbox_send(client[pm_id],mail);
+				}
+				else if(pm_id == -1)
+				{
+					
+					pm_id = searchClient(mail->from);
+					strcpy(mail->lstr,"no such client");
+					mail->from = 0;
+					memset(mail->sstr,'\0',SIZE_OF_SHORT_STRING);
+					mailbox_send(client[pm_id],mail);
+				}
+				memset(mail->lstr,0,SIZE_OF_LONG_STRING);
+			}
+			else if(mail->type/10 == 5)
+			{
+				chat_num = mail->type%10;
+				from = mail->from;
+				mail->type /= 10;
+				if (chat_num >= 3 )
+				{
+					mail->type = 5;
+					strcpy(mail->lstr,"no such chatroom number");
+					mail->from = 0;
+					memset(mail->sstr,'\0',SIZE_OF_SHORT_STRING);
+					from = searchClient(from);
+					mailbox_send(client[from],mail);
+				}
+				else 
+				{
+					chatroom[chat_num][chatroom_count] = (mailbox*)mailbox_open(mail->from);
+					strcpy(chatroom[chat_num][chatroom_count]->name,mail->sstr);
+					printf("%s\n", chatroom[chat_num][chatroom_count]->name);
+					chatroom_count++;
+					mail->from = 0;
+					strcpy(mail->lstr,mail->sstr);
+					strcat(mail->lstr," JOIN");
+					from = searchChatroom(chat_num,from);
+					strcpy(mail->sstr,chatroom[chat_num][from]->name);
+					for(j=0;j<chatroom_count;j++)
+					{	
+						mailbox_send(chatroom[chat_num][j], mail);
+					}
+				}
+				memset(mail->lstr,0,SIZE_OF_LONG_STRING);
+			}
+			else if(mail->type/10 == 6)
+			{
+				from = mail->from;
+				chat_num = mail->type%10;
+				mail->from = 0;
+				from = searchChatroom(chat_num,from);
+				strcpy(mail->sstr,chatroom[chat_num][from]->name);
+				for(j=0;j<chatroom_count;j++)
+				{			
+					mailbox_send(chatroom[chat_num][j], mail);
+				}
+			}
+			else if(mail->type/10 == 7)
+			{
+				from = mail->from;
+				chat_num = mail->type%10;
+
+				if(chat_num >= 3 )
+				{
+					mail->type = 7;
+					strcpy(mail->lstr,"no such chatroom number");
+					mail->from = 0;
+					memset(mail->sstr,'\0',SIZE_OF_SHORT_STRING);
+					from = searchClient(from);
+					mailbox_send(client[from],mail);
+				}
+				else 
+				{
+					from = searchChatroom(chat_num,from);
+					if(from != -1)	
 					{
-						from = j;
-						break;
+						strcpy(mail->sstr,chatroom[chat_num][from]->name);
+						strcpy(mail->lstr,"leave");
+						mail->from = 0;
+						//printf("%s leave\n",client[from]->name );
+						//broadcast the msg
+						for(j=0;j<chatroom_count;j++)
+						{			
+							if(j != from)
+							{
+								//printf("name = %s\n",client[j]->name );
+								mailbox_send(chatroom[chat_num][j], mail);
+							}
+						}
+						//free(client[from]);
+						for(j=0;j<chatroom_count-1;j++)
+						{
+							if(j < from)
+								continue;
+							else if(j >= from )
+							{
+								memcpy(chatroom[chat_num][j],chatroom[chat_num][j+1],sizeof(mailbox));
+
+							}
+						}
+						memset(mail->lstr,0,SIZE_OF_LONG_STRING);
+						chatroom_count--;
 					}
 					else
-						continue;
+					{
+						mail->type = 7;
+						strcpy(mail->lstr,"you have not join the chatroom");
+						mail->from = 0;
+						memset(mail->sstr,'\0',SIZE_OF_SHORT_STRING);
+						from = searchClient(from);
+						mailbox_send(client[from],mail);
+					}
 				}
-				mailbox_send(client[from],mail);
 			}
 		}
 		else
 			continue;
 
 	}
+}
+int searchClient(int id)
+{
+	//search the target client
+	int j;
+	for(j =0;j<client_count;j++)
+	{
+		if(id == client[j]->id)
+			return j;
+		else
+			continue;
+	}
+	return -1;
+
+}
+int searchChatroom(int room,int id)
+{
+	int j;
+	for(j =0;j<chatroom_count;j++)
+	{
+		if(id == chatroom[room][j]->id)
+			return j;
+		else
+			continue;
+	}
+	return -1;
 	
-	
-	
-	
+}
+unsigned int check(mail_t *mail)
+{
+	unsigned int x;
+	int i;
+	x^= mail->from;
+	for(i=0;i<64;i++)
+	{
+		x ^= mail->sstr[i];
+	}
+	return x;
+
+
 }

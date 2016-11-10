@@ -14,7 +14,7 @@ mailbox_t mailbox_open(int id)
 	sprintf(name,"%s%d",SHM_NAME,id);
 	box->id = id;
 	box->fd = shm_open(name, O_RDWR | O_CREAT, 0777);
-	
+	box->checksum ^= id;
 	//if open the shared mem failed
 	if(fd == -1)
 	{

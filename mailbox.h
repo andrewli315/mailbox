@@ -28,6 +28,7 @@ typedef struct __MAILBOX_T
 	int id;
 	int fd;
 	char name[SIZE_OF_SHORT_STRING];
+	unsigned int checksum;
 	
 }mailbox;
 typedef void *mailbox_t;

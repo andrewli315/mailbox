@@ -67,8 +67,12 @@ int main(void)
 	fcntl(server_box->fd,F_SETFL,fcntl(1,F_GETFL)|O_NONBLOCK);//STDOUT
 
 	
-	printf("choose 1)BROADCAST or 2)LEAVE and then input the content after a space \n");
-	printf(GREEN "for example : 1 hello world\n");
+	printf("choose 1)BROADCAST or 2)LEAVE 3)LIST 4(id))PRIVATE 5)JOIN_Chatroom and then input the content after a space \n");
+	printf("6)Chat in Chatroom 7)LEAVE Chartroom\n");
+	printf(LIGHT_GREEN "for example : 1 hello world\n");
+	printf("for example : 4(id) message\n");
+	printf("There are 3 chatroom, 0,1,2, the amount limit is 10\n");
+	printf("for example : 5(chatroom number) message\n");
 	printf(WHITE);
 	while(1)
 	{
@@ -89,14 +93,9 @@ int main(void)
 			if(type == 1)
 			{
 				mail->type = type;
-				printf(LIGHT_GREEN);
-				printf("from     : %d\n",mail->from);
-				printf("type     : %d\n",mail->type);
-				printf("name     : %s\n",mail->sstr);
-				printf("content  : %s\n",mail->lstr);
-				printf(WHITE);
 				mailbox_send(server_box,mail);
-				printf("choose 1)BROADCAST or 2)LEAVE\n");
+				printf("choose 1)BROADCAST or 2)LEAVE 3)LIST 4(id))PRIVATE 5)JOIN_Chatroom and then input the content after a space \n");
+				printf("6)Chat in Chatroom 7)LEAVE Chartroom\n");
 				n = -1;
 				memset(mail->lstr,'\0',SIZE_OF_LONG_STRING);
 			}
@@ -115,6 +114,36 @@ int main(void)
 				mail->type = 3;
 				memset(mail->lstr,'\0',SIZE_OF_LONG_STRING);
 				mailbox_send(server_box,mail);
+				printf("choose 1)BROADCAST or 2)LEAVE 3)LIST 4(id))PRIVATE 5)JOIN_Chatroom and then input the content after a space \n");
+				printf("6)Chat in Chatroom 7)LEAVE Chartroom\n");
+			}
+			else if(type /10 == 4)
+			{
+				mail->type = type;
+				mailbox_send(server_box,mail);
+				printf("choose 1)BROADCAST or 2)LEAVE 3)LIST 4(id))PRIVATE 5)JOIN_Chatroom and then input the content after a space \n");
+				printf("6)Chat in Chatroom 7)LEAVE Chartroom\n");
+			}
+			else if(type/10 == 5)
+			{
+				mail->type = type;
+				mailbox_send(server_box,mail);
+				printf("choose 1)BROADCAST or 2)LEAVE 3)LIST 4(id))PRIVATE 5)JOIN_Chatroom and then input the content after a space \n");
+				printf("6)Chat in Chatroom 7)LEAVE Chartroom\n");
+			}
+			else if(type/10 == 6)
+			{
+				mail->type = type;
+				mailbox_send(server_box,mail);
+				printf("choose 1)BROADCAST or 2)LEAVE 3)LIST 4(id))PRIVATE 5)JOIN_Chatroom and then input the content after a space \n");
+				printf("6)Chat in Chatroom 7)LEAVE Chartroom\n");
+			}
+			else if(type/10 == 7)
+			{
+				mail->type = type;
+				mailbox_send(server_box,mail);
+				printf("choose 1)BROADCAST or 2)LEAVE 3)LIST 4(id))PRIVATE 5)JOIN_Chatroom and then input the content after a space \n");
+				printf("6)Chat in Chatroom 7)LEAVE Chartroom\n");
 			}
 		}
 			
@@ -123,9 +152,12 @@ int main(void)
 			printf(BROWN);
 			printf("GET mail\n");
 			printf("from      : %s\n",get->sstr);
+			printf("id        : %d\n",get->from);
+			printf("type      : %d\n",get->type);
 			printf("content   : %s\n",get->lstr);
 			printf(WHITE);
-			printf("choose 1)BROADCAST or 2)LEAVE\n");		
+			printf("choose 1)BROADCAST or 2)LEAVE 3)LIST 4(id))PRIVATE 5)JOIN_Chatroom and then input the content after a space \n");
+			printf("6)Chat in Chatroom 7)LEAVE Chartroom\n");
 		}
 		if(flag == 0)
 			break;
