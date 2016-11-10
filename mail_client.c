@@ -98,6 +98,7 @@ int main(void)
 				mailbox_send(server_box,mail);
 				printf("choose 1)BROADCAST or 2)LEAVE\n");
 				n = -1;
+				memset(mail->lstr,'\0',SIZE_OF_LONG_STRING);
 			}
 			else if(type == 2)
 			{
@@ -112,6 +113,7 @@ int main(void)
 			{
 				mail->from = id;
 				mail->type = 3;
+				memset(mail->lstr,'\0',SIZE_OF_LONG_STRING);
 				mailbox_send(server_box,mail);
 			}
 		}
@@ -129,6 +131,7 @@ int main(void)
 			break;
 		sleep(1);
 	}
+	free(mail);
 	mailbox_unlink(id);
 	return 0;
 

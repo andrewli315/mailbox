@@ -14,6 +14,8 @@ mailbox_t mailbox_open(int id)
 	sprintf(name,"%s%d",SHM_NAME,id);
 	box->id = id;
 	box->fd = shm_open(name, O_RDWR | O_CREAT, 0777);
+	
+	//if open the shared mem failed
 	if(fd == -1)
 	{
 		fprintf(stderr, "Open shared memory failed\n");
@@ -36,7 +38,10 @@ int mailbox_send(mailbox_t box, mail_t *mail)
 	if(mailbox_check_full(box) == 0)
 		write(((mailbox*)box)->fd,mail,sizeof(mail_t));
 	else
-		return -1;
+	{
+		mailbox_unlink(((mailbox*)box)->id);
+		mailbox_open(((mailbox*)box)->id);
+	}
 	return 0;
 }
 int mailbox_recv(mailbox_t box, mail_t *mail)
@@ -58,12 +63,16 @@ int mailbox_check_empty(mailbox_t box)
 	lseek(((mailbox*)box)->fd,ptr_cur,SEEK_SET);
 	if(ptr_end == ptr_set)
 		return 1;
-		else
-	return 0;
+	else
+		return 0;
 }
 int mailbox_check_full(mailbox_t box)
 {
+	off_t ptr_end = lseek(((mailbox*)box)->fd, 0,SEEK_END);
+	if(ptr_end > 20*sizeof(mail_t))
+		return 1;
 	return 0;
+
 }
 int mailbox_close(mailbox_t box)
 {

@@ -47,7 +47,7 @@ int main(void)
 */
 	
 	printf( RED "Server is on\n" WHITE);
-	while(strcmp("leave",esc) !=0)
+	while(1)
 	{
 //		printf(BROWN);
 		memset(mail,0,sizeof(mail_t));
@@ -63,7 +63,7 @@ int main(void)
 		    mailbox_recv(server,mail);
 			if(mail->type == 0)
 			{
-				//printf("from id %d\n",mail->from );
+				printf("JOIN from id    : %d\n",mail->from );
 				client[i] = (mailbox*)mailbox_open(mail->from);
 				strcpy(client[i]->name,mail->sstr);
 				mailbox_send(client[i], mail);
@@ -98,6 +98,7 @@ int main(void)
 					//printf("name = %s\n",client[j]->name );
 					mailbox_send(client[j], mail);
 				}
+				memset(mail->lstr,0,SIZE_OF_LONG_STRING);
 			}
 			else if(mail->type == 2)
 			{
@@ -105,13 +106,17 @@ int main(void)
 				for(j =0;j<i;j++)
 				{
 					if(from == client[j]->id)
+					{
 						from = j;
+						break;
+					}
 					else
 						continue;
 				}
 				strcpy(mail->sstr,client[from]->name);
 				strcpy(mail->lstr,"leave");
 				mail->from = 0;
+				printf("%s leave\n",client[from]->name );
 				//broadcast the msg
 				for(j=0;j<i;j++)
 				{			
@@ -121,7 +126,7 @@ int main(void)
 						mailbox_send(client[j], mail);
 					}
 				}
-				//free(client[from]);
+				free(client[from]);
 				for(j=0;j<i-1;j++)
 				{
 					if(j < from)
@@ -132,11 +137,13 @@ int main(void)
 
 					}
 				}
-				//memset(client[i],0,sizeof(mailbox));
+				memset(mail->lstr,0,SIZE_OF_LONG_STRING);
 				i--;
 			}
 			else if(mail->type == 3)
 			{
+				memset(mail->lstr,'\0',SIZE_OF_LONG_STRING);
+				printf("type  =  %d\n",mail->type);
 				for(j=0;j<i;j++)
 				{			
 					//printf("name = %s\n",client[j]->name );
@@ -147,7 +154,10 @@ int main(void)
 				for(j =0;j<i;j++)
 				{
 					if(from == client[j]->id)
+					{
 						from = j;
+						break;
+					}
 					else
 						continue;
 				}
