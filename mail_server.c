@@ -35,8 +35,11 @@ int main(void)
 	mail_t *mail;
 	mail = (mail_t*)malloc(sizeof(mail_t));
 
-	static mailbox* server;
+	mailbox* server;
 	mailbox *client[10];
+	//init mailbox
+
+
 	server = (mailbox*)mailbox_open(id);
 /*
 	fcntl(0,F_SETFL,fcntl(0,F_GETFL)|O_NONBLOCK);//STDIN
@@ -51,7 +54,7 @@ int main(void)
 		off_t ptr_cur = lseek(server->fd, 0,SEEK_CUR);
 		off_t ptr_end = lseek(server->fd, 0,SEEK_END);
 		
-	
+		//read(0,&esc,sizeof(esc));
 	    lseek(server->fd,ptr_cur,SEEK_SET);
 
 		
@@ -60,22 +63,24 @@ int main(void)
 		    mailbox_recv(server,mail);
 			if(mail->type == 0)
 			{
-				printf("from id %d\n",mail->from );
+				//printf("from id %d\n",mail->from );
 				client[i] = (mailbox*)mailbox_open(mail->from);
 				strcpy(client[i]->name,mail->sstr);
 				mailbox_send(client[i], mail);
-				printf("client_id is    : %d\n",client[i]->id);
-				printf("client_fd is    : %d\n",client[i]->fd);
+				//printf("client_id is    : %d\n",client[i]->id);
+				//printf("client_fd is    : %d\n",client[i]->fd);
 				memset(mail,0,sizeof(mail_t));
 				i++;
+
 			}
 			else if(mail->type == 1)
 			{
+				printf(LIGHT_CYAN);
 				printf("id is           : %d\n",mail->from);
 				printf("type is         : %d\n", mail->type);
 				printf("receive mail    : %s\n",mail->sstr);
 				printf("mail content    : %s\n", mail->lstr);
-			
+				printf(WHITE);
 				from = mail->from;
 				//get the info of whom send msg
 				for(j =0;j<i;j++)
@@ -90,9 +95,63 @@ int main(void)
 				//broadcast the msg
 				for(j=0;j<i;j++)
 				{			
-					printf("name = %s\n",client[j]->name );
+					//printf("name = %s\n",client[j]->name );
 					mailbox_send(client[j], mail);
 				}
+			}
+			else if(mail->type == 2)
+			{
+				from = mail->from;
+				for(j =0;j<i;j++)
+				{
+					if(from == client[j]->id)
+						from = j;
+					else
+						continue;
+				}
+				strcpy(mail->sstr,client[from]->name);
+				strcpy(mail->lstr,"leave");
+				mail->from = 0;
+				//broadcast the msg
+				for(j=0;j<i;j++)
+				{			
+					if(j != from)
+					{
+						//printf("name = %s\n",client[j]->name );
+						mailbox_send(client[j], mail);
+					}
+				}
+				//free(client[from]);
+				for(j=0;j<i-1;j++)
+				{
+					if(j < from)
+						continue;
+					else if(j >= from )
+					{
+						memcpy(client[j],client[j+1],sizeof(mailbox));
+
+					}
+				}
+				//memset(client[i],0,sizeof(mailbox));
+				i--;
+			}
+			else if(mail->type == 3)
+			{
+				for(j=0;j<i;j++)
+				{			
+					//printf("name = %s\n",client[j]->name );
+					strcat(mail->lstr,client[j]->name);
+					strcat(mail->lstr,",");
+				}
+				from = mail->from;
+				for(j =0;j<i;j++)
+				{
+					if(from == client[j]->id)
+						from = j;
+					else
+						continue;
+				}
+				mailbox_send(client[from],mail);
 			}
 		}
 		else

@@ -29,6 +29,7 @@ int main(void)
 	char usr[32];
 	int length;
 	int type;
+	int flag=1;
 	mailbox* server_box;
 	mail_t *mail,*get;
 	mail_t *mail_join;
@@ -54,6 +55,7 @@ int main(void)
 	mail_join->type = 0;
 	memcpy(mail_join->sstr,usr,sizeof(usr));
 	memset(mail_join->lstr,0,sizeof(mail_join->lstr));
+	lseek(server_box->fd,0,SEEK_END);
 	mailbox_send(server_box,mail_join);
 	
 	
@@ -68,9 +70,9 @@ int main(void)
 	printf("choose 1)BROADCAST or 2)LEAVE and then input the content after a space \n");
 	printf(GREEN "for example : 1 hello world\n");
 	printf(WHITE);
-	while(type != 2)
+	while(1)
 	{
-		
+		printf(WHITE);		
 		//non blocking input 
 		//using read to implement the nonblock io
 		//cut the string 
@@ -100,20 +102,31 @@ int main(void)
 			else if(type == 2)
 			{
 				mail->from = id;
+				mail->type = 2;
+				mailbox_send(server_box,mail);
+				sleep(2);
+				flag = 0;
+				continue;
+			}
+			else if(type == 3)
+			{
+				mail->from = id;
 				mail->type = 3;
 				mailbox_send(server_box,mail);
-				break;
 			}
 		}
 			
 		if( m > 0 )
 		{
 			printf(BROWN);
-			printf("GET mail : %s\n",get->lstr);
+			printf("GET mail\n");
+			printf("from      : %s\n",get->sstr);
+			printf("content   : %s\n",get->lstr);
 			printf(WHITE);
 			printf("choose 1)BROADCAST or 2)LEAVE\n");		
 		}
-		
+		if(flag == 0)
+			break;
 		sleep(1);
 	}
 	mailbox_unlink(id);
